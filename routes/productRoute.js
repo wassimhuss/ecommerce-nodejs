@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const {
   getProductValidator,
   createProductValidator,
   updateProductValidator,
   deleteProductValidator,
-} = require('../utils/validators/productValidator');
+} = require("../utils/validators/productValidator");
 
 const {
   getProducts,
@@ -12,15 +12,30 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
-} = require('../services/productService');
+  uploadProductImages,
+  resizeProductImages,
+} = require("../services/productService");
 
 const router = express.Router();
 
-router.route('/').get(getProducts).post(createProductValidator, createProduct);
 router
-  .route('/:id')
+  .route("/")
+  .get(getProducts)
+  .post(
+    uploadProductImages,
+    resizeProductImages,
+    createProductValidator,
+    createProduct
+  );
+router
+  .route("/:id")
   .get(getProductValidator, getProduct)
-  .put(updateProductValidator, updateProduct)
+  .put(
+    uploadProductImages,
+    resizeProductImages,
+    updateProductValidator,
+    updateProduct
+  )
   .delete(deleteProductValidator, deleteProduct);
 
 module.exports = router;
