@@ -14,6 +14,7 @@ const {
   deleteProduct,
   uploadProductImages,
   resizeProductImages,
+  deleteProductImg,
 } = require("../services/productService");
 
 const router = express.Router();
@@ -37,5 +38,5 @@ router
     updateProduct
   )
   .delete(deleteProductValidator, deleteProduct);
-
+router.route("/deleteimgCover/:id").post(deleteProductImg);
 module.exports = router;
