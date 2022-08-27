@@ -67,21 +67,16 @@ exports.deleteOne = (Model) =>
 
 exports.updateOne = (Model) =>
   asyncHandler(async (req, res, next) => {
-    console.log(req.body);
     const oldProduct = await Model.findOne({ _id: req.params.id });
-    //console.log(oldProduct);
-    // if (oldProduct.image) {
-    //   const oldImage = oldProduct.image.split("http://localhost:8000/")[1];
-    //   fs.unlink("C://projects/ecommerce-apis/uploads/" + oldImage, (err) => {
-    //     if (err) {
-    //       // file doens't exist
-    //       console.info("File doesn't exist, won't remove it.");
-    //     } else {
-    //       console.info(`removed`);
-    //     }
-    //   });
-    // }
-
+    const oldImage = oldProduct.image.split("http://localhost:8000/")[1];
+    fs.unlink("C://projects/ecommerce-apis/uploads/" + oldImage, (err) => {
+      if (err) {
+        // file doens't exist
+        console.info("File doesn't exist, won't remove it.");
+      } else {
+        console.info(`removed`);
+      }
+    });
     const document = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
@@ -91,52 +86,6 @@ exports.updateOne = (Model) =>
       );
     }
     res.status(200).json({ data: document });
-  });
-exports.deleteSpecificImg = (Model, modelName) =>
-  asyncHandler(async (req, res, next) => {
-    const object = await Model.findOne({ _id: req.params.id });
-    if (object.image) {
-      const image = object.image.split("http://localhost:8000/")[1];
-      fs.unlink("C://projects/ecommerce-apis/uploads/" + image, (err) => {
-        if (err) {
-          // file doens't exist
-          console.info("File doesn't exist, won't remove it.");
-          next(
-            new ApiError(
-              `No image for this ${modelName} id ${req.params.id}`,
-              404
-            )
-          );
-        } else {
-          console.info(`removed`);
-          res.status(200).json({
-            result: 1,
-            message: "image has been removed successfully",
-          });
-        }
-      });
-    }
-    if (object.imageCover) {
-      const image = object.imageCover.split("http://localhost:8000/")[1];
-      fs.unlink("C://projects/ecommerce-apis/uploads/" + image, (err) => {
-        if (err) {
-          // file doens't exist
-          console.info("File doesn't exist, won't remove it.");
-          next(
-            new ApiError(
-              `No image for this ${modelName} id ${req.params.id}`,
-              404
-            )
-          );
-        } else {
-          console.info(`removed`);
-          res.status(200).json({
-            result: 1,
-            message: "image has been removed successfully",
-          });
-        }
-      });
-    }
   });
 
 exports.createOne = (Model) =>

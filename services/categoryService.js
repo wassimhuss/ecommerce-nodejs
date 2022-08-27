@@ -50,5 +50,3 @@ exports.updateCategory = factory.updateOne(Category);
 // @route   DELETE /api/v1/categories/:id
 // @access  Private
 exports.deleteCategory = factory.deleteOne(Category);
-
-exports.deleteCategoryImg = factory.deleteSpecificImg(Category, "category");
