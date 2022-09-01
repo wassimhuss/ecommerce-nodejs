@@ -62,7 +62,61 @@ exports.deleteOne = (Model) =>
         new ApiError(`No document for this id ${req.params.id}`, 404)
       );
     }
+    // Trigger "remove" event when update document
+    document.remove();
     res.status(204).send();
+  });
+exports.updateOne = (Model) =>
+  asyncHandler(async (req, res, next) => {
+    const oldProduct = await Model.findOne({ _id: req.params.id });
+
+    if (oldProduct.image && req.file) {
+      const oldImage = oldProduct.image.split("http://localhost:8000/")[1];
+      fs.unlink("C://projects/ecommerce-apis/uploads/" + oldImage, (err) => {
+        if (err) {
+          // file doens't exist
+          console.info("File doesn't exist, won't remove it.");
+        } else {
+          console.info(`removed`);
+        }
+      });
+    }
+
+    const document = await Model.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!document) {
+      return next(
+        new ApiError(`No document for this id ${req.params.id}`, 404)
+      );
+    }
+    // Trigger "save" event when update document
+    document.save();
+    res.status(200).json({ data: document });
+  });
+
+exports.createOne = (Model) =>
+  asyncHandler(async (req, res) => {
+    const newDoc = await Model.create(req.body);
+    res.status(201).json({ data: newDoc });
+  });
+
+exports.getOne = (Model, populationOpt) =>
+  asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    // 1) Build query
+    let query = Model.findById(id);
+    if (populationOpt) {
+      query = query.populate(populationOpt);
+    }
+
+    // 2) Execute query
+    const document = await query;
+
+    if (!document) {
+      return next(new ApiError(`No document for this id ${id}`, 404));
+    }
+    res.status(200).json({ data: document });
   });
 exports.deleteSpecificImg = (Model, modelName) =>
   asyncHandler(async (req, res, next) => {
@@ -113,48 +167,6 @@ exports.deleteSpecificImg = (Model, modelName) =>
         }
       });
     }
-  });
-
-exports.updateOne = (Model) =>
-  asyncHandler(async (req, res, next) => {
-    const oldProduct = await Model.findOne({ _id: req.params.id });
-
-    if (oldProduct.image && req.file) {
-      const oldImage = oldProduct.image.split("http://localhost:8000/")[1];
-      fs.unlink("C://projects/ecommerce-apis/uploads/" + oldImage, (err) => {
-        if (err) {
-          // file doens't exist
-          console.info("File doesn't exist, won't remove it.");
-        } else {
-          console.info(`removed`);
-        }
-      });
-    }
-
-    const document = await Model.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!document) {
-      return next(
-        new ApiError(`No document for this id ${req.params.id}`, 404)
-      );
-    }
-    res.status(200).json({ data: document });
-  });
-exports.createOne = (Model) =>
-  asyncHandler(async (req, res) => {
-    const newDoc = await Model.create(req.body);
-    res.status(201).json({ data: newDoc });
-  });
-
-exports.getOne = (Model) =>
-  asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const document = await Model.findById(id);
-    if (!document) {
-      return next(new ApiError(`No document for this id ${id}`, 404));
-    }
-    res.status(200).json({ data: document });
   });
 
 exports.getAll = (Model, modelName = "") =>
