@@ -66,6 +66,7 @@ exports.deleteOne = (Model) =>
     document.remove();
     res.status(204).send();
   });
+
 exports.updateOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     const oldProduct = await Model.findOne({ _id: req.params.id });
@@ -94,7 +95,6 @@ exports.updateOne = (Model) =>
     document.save();
     res.status(200).json({ data: document });
   });
-
 exports.createOne = (Model) =>
   asyncHandler(async (req, res) => {
     const newDoc = await Model.create(req.body);
