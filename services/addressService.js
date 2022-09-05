@@ -1,7 +1,14 @@
-const asyncHandler = require('express-async-handler');
+const asyncHandler = require("express-async-handler");
 
-const User = require('../models/userModel');
-
+const User = require("../models/userModel");
+const ApiError = require("../utils/apiError");
+// @desc    Get Logged user data
+// @route   GET /api/v1/users/getMe
+// @access  Private/Protect
+exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
+  req.params.id = req.user._id;
+  next();
+});
 // @desc    Add address to user addresses list
 // @route   POST /api/v1/addresses
 // @access  Protected/User
@@ -14,14 +21,47 @@ exports.addAddress = asyncHandler(async (req, res, next) => {
     },
     { new: true }
   );
-
   res.status(200).json({
-    status: 'success',
-    message: 'Address added successfully.',
+    status: "success",
+    message: "Address added successfully.",
     data: user.addresses,
   });
 });
-
+// @desc    Edit address to user addresses list
+// @route   PUT /api/v1/addresses
+// @access  Protected/User
+exports.editAddress = asyncHandler(async (req, res, next) => {
+  const { alias, details, phone, city, postcode } = req.body;
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return next(
+      new ApiError(`there is no user for this id ${req.user._id}`, 404)
+    );
+  }
+  console.log(user);
+  const itemIndex = user.addresses.findIndex(
+    (item) => item._id.toString() === req.params.itemId
+  );
+  if (itemIndex > -1) {
+    const addressItem = user.addresses[itemIndex];
+    addressItem.alias = alias;
+    addressItem.details = details;
+    addressItem.phone = phone;
+    addressItem.city = city;
+    addressItem.postcode = postcode;
+    user.addresses[itemIndex] = addressItem;
+  } else {
+    return next(
+      new ApiError(`there is no address for this id :${req.params.itemId}`, 404)
+    );
+  }
+  await user.save();
+  res.status(200).json({
+    status: "success",
+    message: "Address edited successfully.",
+    data: user.addresses,
+  });
+});
 // @desc    Remove address from user addresses list
 // @route   DELETE /api/v1/addresses/:addressId
 // @access  Protected/User
@@ -36,8 +76,8 @@ exports.removeAddress = asyncHandler(async (req, res, next) => {
   );
 
   res.status(200).json({
-    status: 'success',
-    message: 'Address removed successfully.',
+    status: "success",
+    message: "Address removed successfully.",
     data: user.addresses,
   });
 });
@@ -46,10 +86,10 @@ exports.removeAddress = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/addresses
 // @access  Protected/User
 exports.getLoggedUserAddresses = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user._id).populate('addresses');
+  const user = await User.findById(req.user._id).populate("addresses");
 
   res.status(200).json({
-    status: 'success',
+    status: "success",
     results: user.addresses.length,
     data: user.addresses,
   });

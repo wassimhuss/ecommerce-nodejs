@@ -27,27 +27,33 @@ exports.createAddressValidator = [
     .withMessage("city required")
     .isLength({ max: 32 })
     .withMessage("Too long city name"),
+  check("phone")
+    .notEmpty()
+    .isMobilePhone(["ar-EG", "ar-SA", "ar-LB"])
+    .withMessage("Invalid phone number only accepted Egy and SA Phone numbers"),
   validatorMiddleware,
 ];
 
 exports.updateAddressValidator = [
-  check("id").isMongoId().withMessage("Invalid address id format"),
   check("alias")
-    .optional()
+    .notEmpty()
+    .withMessage("alias required")
     .isLength({ max: 32 })
-    .withMessage("Too long alias name")
-    .custom((val, { req }) => {
-      req.body.slug = slugify(val);
-      return true;
-    }),
+    .withMessage("Too long alias name"),
   check("details")
-    .optional()
+    .notEmpty()
+    .withMessage("details required")
     .isLength({ max: 32 })
     .withMessage("Too long details name"),
   check("city")
-    .optional()
+    .notEmpty()
+    .withMessage("city required")
     .isLength({ max: 32 })
     .withMessage("Too long city name"),
+  check("phone")
+    .notEmpty()
+    .isMobilePhone(["ar-EG", "ar-SA", "ar-LB"])
+    .withMessage("Invalid phone number only accepted Egy and SA Phone numbers"),
   validatorMiddleware,
 ];
 
