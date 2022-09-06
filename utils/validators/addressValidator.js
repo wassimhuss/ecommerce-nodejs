@@ -31,6 +31,7 @@ exports.createAddressValidator = [
     .notEmpty()
     .isMobilePhone(["ar-EG", "ar-SA", "ar-LB"])
     .withMessage("Invalid phone number only accepted Egy and SA Phone numbers"),
+  check("postalCode").optional(),
   validatorMiddleware,
 ];
 

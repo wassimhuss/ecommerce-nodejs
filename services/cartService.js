@@ -6,13 +6,19 @@ const Coupon = require("../models/couponModel");
 const Cart = require("../models/cartModel");
 
 const calcTotalCartPrice = (cart) => {
-  let totalPrice = 0;
-  cart.cartItems.forEach((item) => {
-    totalPrice += item.quantity * item.price;
-  });
-  cart.totalCartPrice = totalPrice;
-  cart.totalPriceAfterDiscount = undefined;
-  return totalPrice;
+  console.log(cart.cartItems);
+  if (cart.cartItems.length != 0) {
+    let totalPrice = 0;
+    cart.cartItems.forEach((item) => {
+      totalPrice += item.quantity * item.price;
+    });
+    cart.totalCartPrice = totalPrice;
+    cart.totalPriceAfterDiscount = undefined;
+    return totalPrice;
+  } else {
+    cart.totalCartPrice = undefined;
+    cart.totalPriceAfterDiscount = undefined;
+  }
 };
 
 // @desc    Add product to  cart
@@ -82,6 +88,38 @@ exports.getLoggedUserCart = asyncHandler(async (req, res, next) => {
 // @desc    Remove specific cart item
 // @route   DELETE /api/v1/cart/:itemId
 // @access  Private/User
+exports.decreaseSpecificCartItem = asyncHandler(async (req, res, next) => {
+  const userCart = await Cart.findOne({ user: req.user._id });
+  if (!userCart) {
+    return next(new ApiError(`there is no cart for user ${req.user._id}`, 404));
+  }
+  const itemIndex = userCart.cartItems.findIndex(
+    (item) => item._id.toString() === req.params.itemId
+  );
+  if (itemIndex > -1) {
+    if (userCart.cartItems[itemIndex].quantity <= 1) {
+      userCart.cartItems.splice(itemIndex, 1);
+      calcTotalCartPrice(userCart);
+      userCart.save();
+    } else {
+      const cartItem = userCart.cartItems[itemIndex];
+      cartItem.quantity = cartItem.quantity - 1;
+      userCart.cartItems[itemIndex] = cartItem;
+      calcTotalCartPrice(userCart);
+      userCart.save();
+    }
+  } else {
+    return next(
+      new ApiError(`there is no item for this id :${req.params.itemId}`, 404)
+    );
+  }
+
+  res.status(200).json({
+    status: "success",
+    numOfCartItems: userCart.cartItems.length,
+    data: userCart,
+  });
+});
 exports.removeSpecificCartItem = asyncHandler(async (req, res, next) => {
   const cart = await Cart.findOneAndUpdate(
     { user: req.user._id },

@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 
 const User = require("../models/userModel");
 const ApiError = require("../utils/apiError");
+
 // @desc    Add address to user addresses list
 // @route   POST /api/v1/addresses
 // @access  Protected/User
@@ -30,7 +31,7 @@ exports.addAddress = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/addresses
 // @access  Protected/User
 exports.editAddress = asyncHandler(async (req, res, next) => {
-  const { alias, details, phone, city, postcode } = req.body;
+  const { alias, details, phone, city, postalCode } = req.body;
   const user = await User.findById(req.user._id);
   if (!user) {
     return next(
@@ -46,7 +47,7 @@ exports.editAddress = asyncHandler(async (req, res, next) => {
     addressItem.details = details;
     addressItem.phone = phone;
     addressItem.city = city;
-    addressItem.postcode = postcode;
+    addressItem.postalCode = postalCode;
     user.addresses[itemIndex] = addressItem;
   } else {
     return next(
