@@ -2,17 +2,11 @@ const asyncHandler = require("express-async-handler");
 
 const User = require("../models/userModel");
 const ApiError = require("../utils/apiError");
-// @desc    Get Logged user data
-// @route   GET /api/v1/users/getMe
-// @access  Private/Protect
-exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
-  req.params.id = req.user._id;
-  next();
-});
 // @desc    Add address to user addresses list
 // @route   POST /api/v1/addresses
 // @access  Protected/User
 exports.addAddress = asyncHandler(async (req, res, next) => {
+  const Useraddresses = await User.findById(req.user._id);
   // $addToSet => add address object to user addresses  array if address not exist
   const user = await User.findByIdAndUpdate(
     req.user._id,
@@ -21,6 +15,11 @@ exports.addAddress = asyncHandler(async (req, res, next) => {
     },
     { new: true }
   );
+  if (Useraddresses.addresses.length == user.addresses.length) {
+    return next(
+      new ApiError(`error while adding address! please try again later`, 404)
+    );
+  }
   res.status(200).json({
     status: "success",
     message: "Address added successfully.",
@@ -38,7 +37,6 @@ exports.editAddress = asyncHandler(async (req, res, next) => {
       new ApiError(`there is no user for this id ${req.user._id}`, 404)
     );
   }
-  console.log(user);
   const itemIndex = user.addresses.findIndex(
     (item) => item._id.toString() === req.params.itemId
   );
@@ -62,10 +60,12 @@ exports.editAddress = asyncHandler(async (req, res, next) => {
     data: user.addresses,
   });
 });
+
 // @desc    Remove address from user addresses list
 // @route   DELETE /api/v1/addresses/:addressId
 // @access  Protected/User
 exports.removeAddress = asyncHandler(async (req, res, next) => {
+  const Useraddresses = await User.findById(req.user._id);
   // $pull => remove address object from user addresses array if addressId exist
   const user = await User.findByIdAndUpdate(
     req.user._id,
@@ -74,7 +74,14 @@ exports.removeAddress = asyncHandler(async (req, res, next) => {
     },
     { new: true }
   );
-
+  if (Useraddresses.addresses.length == user.addresses.length) {
+    return next(
+      new ApiError(
+        `there is no address for this id :${req.params.addressId}`,
+        404
+      )
+    );
+  }
   res.status(200).json({
     status: "success",
     message: "Address removed successfully.",
